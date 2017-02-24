@@ -92,7 +92,7 @@
     return false;
   };
 
-  ext.setLED = function(l, c) {
+  ext.setLED = function(l, c, callback) {
     var led = parseInt(l);
     if (l === 'all')
       led = 0;
@@ -102,9 +102,10 @@
     var b = c & 0xFF;
     var output = [0x80, led, r, g, b];
     device.emit('write', {uuid: TX_CHAR, bytes: output});
+    setTimeout(callback, 500);
   };
 
-  ext.setLEDRGB = function(l, r, g, b) {
+  ext.setLEDRGB = function(l, r, g, b, callback) {
     var led = parseInt(l);
     if (l === 'all')
       led = 0;
@@ -113,14 +114,16 @@
     if (!Number.isInteger(b)) return;
     var output = [0x80, led, r, g, b];
     device.emit('write', {uuid: TX_CHAR, bytes: output});
+    setTimeout(callback, 500);
   };
 
-  ext.clearLED = function(l) {
+  ext.clearLED = function(l, callback) {
     var led = parseInt(l);
     if (l === 'all')
       led = 0;
     if (!Number.isInteger(led)) return;
     device.emit('write', {uuid: TX_CHAR, bytes: [0x81, led]});
+    setTimeout(callback, 500);
   };
 
   ext.getSlider = function() {
@@ -138,9 +141,9 @@
     steinhart = 1.0 / steinhart;
     steinhart -= 273.15;
     if (type === "F")
-      return steinhart * 1.8 + 32;
+      return (steinhart * 1.8 + 32).toFixed(2);
     else
-      return steinhart;
+      return steinhart.toFixed(2);
   };
 
   ext.getBrightness = function() {
@@ -148,7 +151,7 @@
     return Math.round(map(brightness, 0, 1023, 0, 100));
   };
 
-  ext.playNote = function(note, dur) {
+  ext.playNote = function(note, dur, callback) {
     var freq = 440 * Math.pow(1.05946309436, note-69);
     freq = Math.round(freq);
     if (dur < 0) return;
@@ -156,6 +159,7 @@
     var output = [0x82, freq >> 8, freq & 0xFF, dur];
     console.log(output);
     device.emit('write', {uuid: TX_CHAR, bytes: output});
+    setTimeout(callback, dur*1000);
   };
 
   ext.whenTilted = function(dir) {
@@ -176,22 +180,24 @@
     return getTiltAngle(dir);
   };
 
-  ext.setClipDigital = function(pin, state) {
+  ext.setClipDigital = function(pin, state, callback) {
     if (pin != 6 && pin != 9 && pin != 10 && pin != 11)
       return;
     var output = [CMD_DIGITAL_WRITE, pin, 0];
     if (state === "on")
       output[2] = 1;
     device.emit('write', {uuid: TX_CHAR, bytes: output});
+    setTimeout(callback, 500);
   };
 
-  ext.setClipAnalog = function(pin, val) {
+  ext.setClipAnalog = function(pin, val, callback) {
     if (pin != 6 && pin != 9 && pin != 10 && pin != 11)
       return;
     if (val > 100) val = 100;
     else if (val < 0) val = 0;
     var output = [CMD_ANALOG_WRITE, pin, val];
     device.emit('write', {uuid: TX_CHAR, bytes: output});
+    setTimeout(callback, 500);
   };
 
   ext._getStatus = function() {
@@ -238,25 +244,25 @@
   };
 
   var blocks = [
-    ['h', 'when %m.btnSides button pressed', 'whenbuttonPressed', 'left'],
+    ['h', 'when %m.btnSides button pressed', 'whenButtonPressed', 'left'],
     ['b', '%m.btnSides button pressed?', 'isButtonPressed', 'left'],
     [' '],
     ['b', 'slider', 'getSlider'],
     ['r', 'temperature in %m.temp', 'getTemp', 'F'],
     ['r', 'brightness', 'getBrightness'],
     [' '],
-    [' ', 'set LED %d.leds to %c', 'setLED', '1', 0xFF0000],
-    [' ', 'set LED %d.leds to R:%n G:%n B:%n', 'setLEDRGB', '1', 0, 255, 0],
-    [' ', 'turn LED %d.leds off', 'clearLED', '1'],
+    ['w', 'set LED %d.leds to %c', 'setLED', '1', 0xFF0000],
+    ['w', 'set LED %d.leds to R:%n G:%n B:%n', 'setLEDRGB', '1', 0, 255, 0],
+    ['w', 'turn LED %d.leds off', 'clearLED', '1'],
     [' '],
-    [' ', 'play note %d.note for %n second', 'playNote', 60, 1],
+    ['w', 'play note %d.note for %n second', 'playNote', 60, 1],
     [' '],
     ['h', 'when tilted %m.tiltDirs', 'isTilted', 'any'],
     ['b', 'tilted %m.tiltDirs ?', 'isTilted', 'any'],
     ['r', 'tilt angle %m.tiltAngleDirs', 'getTiltAngle', 'up'],
     [' '],
-    [' ', 'set pin %d.clipPins %m.states', 'setClipDigital', 6, 'on'],
-    [' ', 'set pin %d.clipPins to %n%', 'setClipAnalog', 6, '50']
+    ['w', 'set pad %d.clipPins %m.states', 'setClipDigital', 6, 'on'],
+    ['w', 'set pad %d.clipPins to %n%', 'setClipAnalog', 6, '50']
   ];
 
   var menus = {
