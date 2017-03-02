@@ -262,7 +262,7 @@
     ['r', 'tilt angle %m.tiltAngleDirs', 'getTiltAngle', 'up'],
     [' '],
     ['w', 'set pad %d.clipPins %m.states', 'setClipDigital', 6, 'on'],
-    ['w', 'set pad %d.clipPins to %n%', 'setClipAnalog', 6, '50']
+    //['w', 'set pad %d.clipPins to %n%', 'setClipAnalog', 6, '50']
   ];
 
   var menus = {
