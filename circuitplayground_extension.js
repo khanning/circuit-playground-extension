@@ -181,7 +181,7 @@
   };
 
   ext.setClipDigital = function(pin, state, callback) {
-    if (pin != 6 && pin != 9 && pin != 10 && pin != 11)
+    if (pin != 6 && pin != 9 && pin != 10 && pin != 12)
       return;
     var output = [CMD_DIGITAL_WRITE, pin, 0];
     if (state === "on")
@@ -191,7 +191,7 @@
   };
 
   ext.setClipAnalog = function(pin, val, callback) {
-    if (pin != 6 && pin != 9 && pin != 10 && pin != 11)
+    if (pin != 6 && pin != 9 && pin != 10 && pin != 12)
       return;
     if (val > 100) val = 100;
     else if (val < 0) val = 0;
