@@ -39,6 +39,10 @@ void setup() {
   CircuitPlayground.begin();
   CircuitPlayground.setAccelRange(LIS3DH_RANGE_2_G);
   //Serial.begin(9600);
+  pinMode(6, OUTPUT);
+  pinMode(9, OUTPUT);
+  pinMode(10, OUTPUT);
+  pinMode(12, OUTPUT);
   initBLE();
   //Serial.println("starting serial");
   nextUpdate = micros() + UPDATE_FREQ;
