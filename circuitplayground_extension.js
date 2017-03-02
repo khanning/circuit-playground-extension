@@ -23,7 +23,7 @@
   var CMD_DIGITAL_WRITE = 0x83,
       CMD_ANALOG_WRITE = 0x84;
 
-  var WRITE_DELAY = 200;
+  var WRITE_DELAY = 500;
 
   var rawData = [];
   var inputData = null;
