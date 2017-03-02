@@ -23,6 +23,8 @@
   var CMD_DIGITAL_WRITE = 0x83,
       CMD_ANALOG_WRITE = 0x84;
 
+  var WRITE_DELAY = 200;
+
   var rawData = [];
   var inputData = null;
   var device = null;
@@ -102,7 +104,7 @@
     var b = c & 0xFF;
     var output = [0x80, led, r, g, b];
     device.emit('write', {uuid: TX_CHAR, bytes: output});
-    setTimeout(callback, 500);
+    setTimeout(callback, WRITE_DELAY);
   };
 
   ext.setLEDRGB = function(l, r, g, b, callback) {
@@ -114,7 +116,7 @@
     if (!Number.isInteger(b)) return;
     var output = [0x80, led, r, g, b];
     device.emit('write', {uuid: TX_CHAR, bytes: output});
-    setTimeout(callback, 500);
+    setTimeout(callback, WRITE_DELAY);
   };
 
   ext.clearLED = function(l, callback) {
@@ -123,7 +125,7 @@
       led = 0;
     if (!Number.isInteger(led)) return;
     device.emit('write', {uuid: TX_CHAR, bytes: [0x81, led]});
-    setTimeout(callback, 500);
+    setTimeout(callback, WRITE_DELAY);
   };
 
   ext.getSlider = function() {
@@ -187,7 +189,7 @@
     if (state === "on")
       output[2] = 1;
     device.emit('write', {uuid: TX_CHAR, bytes: output});
-    setTimeout(callback, 500);
+    setTimeout(callback, WRITE_DELAY);
   };
 
   ext.setClipAnalog = function(pin, val, callback) {
@@ -197,7 +199,7 @@
     else if (val < 0) val = 0;
     var output = [CMD_ANALOG_WRITE, pin, val];
     device.emit('write', {uuid: TX_CHAR, bytes: output});
-    setTimeout(callback, 500);
+    setTimeout(callback, WRITE_DELAY);
   };
 
   ext._getStatus = function() {
