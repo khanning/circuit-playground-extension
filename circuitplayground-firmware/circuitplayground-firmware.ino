@@ -38,7 +38,7 @@ byte commandIndex = 0;
 void setup() {
   CircuitPlayground.begin();
   CircuitPlayground.setAccelRange(LIS3DH_RANGE_2_G);
-  //Serial.begin(9600);
+  Serial.begin(9600);
   pinMode(6, OUTPUT);
   pinMode(9, OUTPUT);
   pinMode(10, OUTPUT);
@@ -59,6 +59,8 @@ void loop() {
     if (tmpBuffer[i] != inputBuffer[i]) {
       memcpy(inputBuffer, tmpBuffer, sizeof(tmpBuffer[0])*MAX_INPUT_BUFFER);
       processCmd(inputBuffer);
+      memset(tmpBuffer, 0, sizeof(tmpBuffer));
+      gatt.setChar(rxCharId, tmpBuffer, MAX_INPUT_BUFFER);
       break;
     }
   }
@@ -72,7 +74,6 @@ void processCmd(uint8_t inputBuffer[]) {
         CircuitPlayground.setPixelColor(i, inputBuffer[2], inputBuffer[3], inputBuffer[4]);  
       }
     } else {
-      Serial.println(inputBuffer[4]);
       CircuitPlayground.setPixelColor(inputBuffer[1]-1, inputBuffer[2], inputBuffer[3], inputBuffer[4]);  
     }
   } else if (inputBuffer[0] == CMD_CLEAR_LED) {
@@ -83,11 +84,12 @@ void processCmd(uint8_t inputBuffer[]) {
     }
   } else if (inputBuffer[0] == CMD_TONE) {
     int t = inputBuffer[1] << 8 | inputBuffer[2];
-    CircuitPlayground.playTone(t, inputBuffer[3]*1000);
+    int dur = inputBuffer[3] << 8 | inputBuffer[4];
+    CircuitPlayground.playTone(t, dur);
   } else if (inputBuffer[0] == CMD_DIGITAL_WRITE) {
     digitalWrite(inputBuffer[1], inputBuffer[2]);
   } else if (inputBuffer[0] == CMD_ANALOG_WRITE) {
-    digitalWrite(inputBuffer[1], map(inputBuffer[2], 0, 100, 0, 1023));
+    analogWrite(inputBuffer[1], map(inputBuffer[2], 0, 100, 0, 1023));
   }
 }
 

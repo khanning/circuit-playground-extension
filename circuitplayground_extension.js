@@ -109,6 +109,8 @@
 
   ext.setLEDRGB = function(l, r, g, b, callback) {
     var led = parseInt(l);
+    if (led < 1) return;
+    if (led > 10) return;
     if (l === 'all')
       led = 0;
     if (!Number.isInteger(r)) return;
@@ -118,6 +120,21 @@
     device.emit('write', {uuid: TX_CHAR, bytes: output});
     setTimeout(callback, WRITE_DELAY);
   };
+
+  ext.setLEDRandom = function(l, callback) {
+    var led = parseInt(l);
+    if (led < 1) return;
+    if (led > 10) return;
+    if (l === 'all')
+      led = 0;
+    var output = [0x80, led, getRandomColor(), getRandomColor(), getRandomColor()];
+    device.emit('write', {uuid: TX_CHAR, bytes: output});
+    setTimeout(callback, WRITE_DELAY);
+  };
+
+  function getRandomColor() {
+    return Math.floor(Math.random() * (255 - 0));
+  }
 
   ext.clearLED = function(l, callback) {
     var led = parseInt(l);
@@ -158,24 +175,26 @@
     freq = Math.round(freq);
     if (dur < 0) return;
     if (dur > 255) dur = 255;
-    var output = [0x82, freq >> 8, freq & 0xFF, dur];
+    dur = Math.round(dur * 1000);
+    var output = [0x82, freq >> 8, freq & 0xFF, dur >> 8, dur & 0xFF];
     console.log(output);
     device.emit('write', {uuid: TX_CHAR, bytes: output});
-    setTimeout(callback, dur*1000);
+    setTimeout(callback, dur);
   };
 
-  ext.whenTilted = function(dir) {
+  function isTilted(dir) {
     if (dir === 'any')
-      return (inputData[7] != 0 || inputData[8] != 0);
+      return (Math.abs(inputData[7]) > 15 || Math.abs(inputData[8]) < 15);
     else
-      return getTiltAngle(dir) >= 10;
+      return getTiltAngle(dir) >= 15;
+  }
+
+  ext.whenTilted = function(dir) {
+    return isTilted(dir);
   }
 
   ext.isTilted = function(dir) {
-    if (dir === 'any')
-      return (inputData[7] != 0 || inputData[8] != 0);
-    else
-      return getTiltAngle(dir) >= 10;
+    return isTilted(dir);
   };
 
   ext.getTiltAngle = function(dir) {
@@ -222,7 +241,6 @@
         device.on(RX_CHAR, function(bytes) {
           if (bytes.data.length === 10) {
             inputData = bytes.data;
-            console.log(inputData);
           }
         });
       } else if (d) {
@@ -255,6 +273,7 @@
     [' '],
     ['w', 'set LED %d.leds to %c', 'setLED', '1', 0xFF0000],
     ['w', 'set LED %d.leds to R:%n G:%n B:%n', 'setLEDRGB', '1', 0, 255, 0],
+    ['w', 'set LED %d.leds to random', 'setLEDRandom', '1'],
     ['w', 'turn LED %d.leds off', 'clearLED', '1'],
     [' '],
     ['w', 'play note %d.note for %n second', 'playNote', 60, 1],
